@@ -9,7 +9,11 @@ export function List({}: Props) {
   useEffect(() => {
     if (!ref.current) return;
 
-    new CanvasTree(ref.current);
+    const tree = new CanvasTree(ref.current);
+
+    return () => {
+      tree.destory();
+    };
   }, []);
 
   return <div ref={ref} className="w-full h-full"></div>;
