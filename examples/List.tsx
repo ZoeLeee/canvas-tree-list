@@ -1,9 +1,8 @@
 import { CanvasTree } from "@lizhou/canvas-tree-list";
 import { useEffect, useRef } from "react";
 
-type Props = {};
 
-export function List({}: Props) {
+export function List() {
   const ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -16,5 +15,5 @@ export function List({}: Props) {
     };
   }, []);
 
-  return <div ref={ref} className="w-full h-full"></div>;
+  return <div ref={ref} className="w-full h-full" />;
 }
