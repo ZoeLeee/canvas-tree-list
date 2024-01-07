@@ -18,7 +18,10 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@lizhou/canvas-tree-list": ["./src"],
+    }
   },
   "include": ["examples"],
   "references": [{ "path": "./tsconfig.node.json" }]
