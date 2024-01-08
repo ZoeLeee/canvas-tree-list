@@ -1,13 +1,13 @@
 import { Group } from "konva/lib/Group";
 import { Layer } from "konva/lib/Layer";
+import { Shape } from "konva/lib/Shape";
 import { Stage } from "konva/lib/Stage";
+import { Line } from "konva/lib/shapes/Line";
+import { Path } from "konva/lib/shapes/Path";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 import { Mock_Data } from "./_mock";
 import { TreeItemOption } from "./types";
-import { Shape } from "konva/lib/Shape";
-import { Line } from "konva/lib/shapes/Line";
-import { Path } from "konva/lib/shapes/Path";
 import { clamp } from "./utils";
 
 const itemHeight = 30;

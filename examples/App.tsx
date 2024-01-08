@@ -1,11 +1,11 @@
+import Konva from "konva";
+import { Arc } from "konva/lib/shapes/Arc";
+import { Circle } from "konva/lib/shapes/Circle";
+import { Ellipse } from "konva/lib/shapes/Ellipse";
+import { Rect } from "konva/lib/shapes/Rect";
 import { useEffect, useRef } from "react";
 import "./App.css";
-import Konva from "konva";
 import { List } from "./List";
-import { Rect } from "konva/lib/shapes/Rect";
-import { Circle } from "konva/lib/shapes/Circle";
-import { Arc } from "konva/lib/shapes/Arc";
-import { Ellipse } from "konva/lib/shapes/Ellipse";
 
 //获取min~max之间的随机整数
 function random(min: number, max: number) {
@@ -23,7 +23,7 @@ function App() {
       height: containerRef.current.clientHeight,
     });
 
-    const count = random(500, 1000);
+    const count = random(100, 200);
 
     // then create layer
     const layer = new Konva.Layer();

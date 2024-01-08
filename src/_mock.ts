@@ -49,7 +49,7 @@ export const Mock_Data: TreeItemOption[] = [
 			},
 		],
 	},
-	...Array.from({ length: 1000 }, () => ({
+	...Array.from({ length: 20 }, () => ({
 		label: `Option ${id++}`,
 		id: id++,
 	})),
