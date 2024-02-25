@@ -6,17 +6,19 @@ import { Line } from "konva/lib/shapes/Line";
 import { Path } from "konva/lib/shapes/Path";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
+import { Vector2d } from "konva/lib/types";
 import { Mock_Data } from "./_mock";
 import { TreeItemOption } from "./types";
 import { clamp } from "./utils";
 
 const itemHeight = 30;
 const padding = 8;
-const LEFT_SPACING = 10;
+const SPACING = 10;
 const SCROLL_BAR_WIDTH = 10;
 export const ROOT_ID = 0;
 export const UN_NAMED = "未命名";
 const SCROLL_BAR_NAME = "SCROLL_BAR";
+const ICON_DEFAULT_SIZE = 20
 
 /**
  * 使用画布绘制列表
@@ -33,6 +35,8 @@ export class CanvasTree {
 			width: container.clientWidth,
 			height: container.clientHeight,
 		});
+
+		this._data = Mock_Data;
 
 		const layer = new Layer();
 		this._layer = layer;
@@ -73,7 +77,9 @@ export class CanvasTree {
 		return this._stage.height();
 	}
 	render() {
-		this._data = Mock_Data;
+		this._layer.destroyChildren()
+		this.totalHeight = 0
+		this._renderIndex = 0
 		for (const element of this._data) {
 			this.renderNodeItem(element, 0);
 		}
@@ -82,26 +88,41 @@ export class CanvasTree {
 		this.drawScrollbar();
 	}
 	renderNodeItem(item: TreeItemOption, depth: number) {
-		const x = depth * 30;
-		const y = this._renderIndex * 30;
+		const x = depth * SPACING;
+		const y = this._renderIndex * itemHeight;
+
+		const position: Vector2d = {
+			x, y
+		}
+
+		position.x += SPACING
+
 		const group = new Group({
-			x,
-			y,
+			x: 0,
+			y: position.y,
+			ORIGIN_DATA: item,
+			name: "ITEM_ROOT"
 		});
 
 		const background = new Rect({
 			name: "Backgroud",
 			width: this.Width,
-			height: 30,
+			height: itemHeight,
 			stroke: "black",
 			strokeWidth: 1,
 		});
 		group.add(background);
 
+		// render group arrow
+
+		// render icon
+		this._renderIcon(item, group, position);
+
+		// render text
 		const text = new Text({
 			text: item.label,
-			x: 30,
-			height: 30,
+			x: position.x,
+			height: itemHeight,
 			verticalAlign: "middle",
 		});
 		group.add(text);
@@ -109,8 +130,7 @@ export class CanvasTree {
 		this._layer.add(group);
 
 		this._renderIndex++;
-
-		if (item.children) {
+		if (item.children && (item.expanded !== false)) {
 			for (const element of item.children) {
 				this.renderNodeItem(element, depth + 1);
 			}
@@ -177,11 +197,20 @@ export class CanvasTree {
 		});
 
 		this._stage.on("click", (evt) => {
+			console.log('evt: ', evt);
 			if (evt.evt.button !== 0) return;
 			if (evt.target.attrs.ID === SCROLL_BAR_NAME) {
 				//点在滚动条上
 			} else {
+
 				const root = this.getRootByNode(evt.target as Shape);
+				//折叠
+				if (evt.target.name() === "FOLDER_ICON") {
+					this.collapse(root?.getAttr("ORIGIN_DATA"));
+					return
+				}
+
+				console.log('root: ', root);
 				if (root) {
 				}
 			}
@@ -220,10 +249,37 @@ export class CanvasTree {
 		let item = node as Shape | Group;
 		while (item.parent) {
 			item = item.parent as Group;
-			if (item.attrs.ID === "ITEM_ROOT") {
+			if (item.name() === "ITEM_ROOT") {
 				return item;
 			}
 		}
 		return null;
 	}
+	private _renderIcon(item: TreeItemOption, parent: Group, position: Vector2d) {
+		if (item.children?.length) {
+			const foldIcon2 = new Path({
+				data: "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8z",
+				x: SPACING,
+				y: 2.5,
+				stroke: "#ccc",
+				strokeWidth: 1,
+				width: ICON_DEFAULT_SIZE,
+				height: ICON_DEFAULT_SIZE,
+				fill: "#ffe3c7",
+				name: "FOLDER_ICON"
+			})
+			// this._layer.add(foldIcon)
+			parent.add(foldIcon2)
+			position.x += (SPACING * 3)
+		}
+	}
+	private collapse(item: TreeItemOption) {
+		console.log('item: ', item);
+		if (item.expanded === undefined) {
+			item.expanded = true
+		}
+		item.expanded = !item.expanded;
+		this.render()
+	}
+
 }
