@@ -7,12 +7,12 @@ import { Path } from "konva/lib/shapes/Path";
 import { Rect } from "konva/lib/shapes/Rect";
 import { Text } from "konva/lib/shapes/Text";
 import { Vector2d } from "konva/lib/types";
+
 import { Mock_Data } from "./_mock";
 import { TreeItemOption } from "./types";
 import { clamp } from "./utils";
 
 const itemHeight = 30;
-const padding = 8;
 const SPACING = 10;
 const SCROLL_BAR_WIDTH = 10;
 export const ROOT_ID = 0;
@@ -205,6 +205,7 @@ export class CanvasTree {
 
 				const root = this.getRootByNode(evt.target as Shape);
 				//折叠
+				console.log('evt.target.name(): ', evt.target.name());
 				if (evt.target.name() === "FOLDER_ICON") {
 					this.collapse(root?.getAttr("ORIGIN_DATA"));
 					return
@@ -257,24 +258,60 @@ export class CanvasTree {
 	}
 	private _renderIcon(item: TreeItemOption, parent: Group, position: Vector2d) {
 		if (item.children?.length) {
-			const foldIcon2 = new Path({
-				data: "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8z",
-				x: SPACING,
+
+			const down = "M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"
+			const right = "M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
+
+			const arrow = new Path({
+				data: item.expanded ? down : right,
+				x: position.x,
 				y: 2.5,
 				stroke: "#ccc",
 				strokeWidth: 1,
 				width: ICON_DEFAULT_SIZE,
 				height: ICON_DEFAULT_SIZE,
 				fill: "#ffe3c7",
-				name: "FOLDER_ICON"
+				name: "FOLDER_ICON",
+				hitStrokeWidth: 10
+			})
+			position.x += (SPACING * 2)
+
+			const foldIcon2 = new Path({
+				data: "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8z",
+				x: position.x,
+				y: 2.5,
+				stroke: "#ccc",
+				strokeWidth: 1,
+				width: ICON_DEFAULT_SIZE,
+				height: ICON_DEFAULT_SIZE,
+				fill: "#ffe3c7",
+				name: "FOLDER_ICON",
+				hitStrokeWidth: 10
 			})
 			// this._layer.add(foldIcon)
 			parent.add(foldIcon2)
+			parent.add(arrow)
+
 			position.x += (SPACING * 3)
+
+		} else {
+			const icon = new Rect({
+				x: position.x,
+				y: 5,
+				width: ICON_DEFAULT_SIZE,
+				height: ICON_DEFAULT_SIZE,
+				stroke: "#ccc",
+				strokeWidth: 1,
+				fill: "#44e3c7",
+			})
+
+			parent.add(icon)
+
+			position.x += (SPACING * 3)
+
 		}
 	}
 	private collapse(item: TreeItemOption) {
-		console.log('item: ', item);
 		if (item.expanded === undefined) {
 			item.expanded = true
 		}

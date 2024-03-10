@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div>333</div>
+    <div
+      id="konvajs"
+      style="width: 80vw; height: 100vh"
+      className="w-8/12 outline"
+    />
+    <!-- <script src="https://cdn.jsdelivr.net/npm/konva@9.3.6/lib/index.min.js"></script> -->
+    <script src="https://unpkg.com/konva/konva.js"></script>
+    <script src="./dist/canvas-tree-list.umd.js"></script>
+    <script>
+      const dom = document.getElementById("konvajs");
+      const canvasTreeList = new CanvasList.CanvasTree(dom);
+      canvasTreeList.render();
+    </script>
+  </body>
+</html>

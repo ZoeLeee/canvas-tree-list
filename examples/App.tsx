@@ -63,7 +63,7 @@ function App() {
 
   return (
     <div className="w-full h-full flex">
-      <div id="konvajs" className="w-8/12 outline" ref={containerRef}></div>
+      <div id="konvajs" className="w-8/12 outline" ref={containerRef as any} />
       <div className="flex-1">
         <List />
       </div>

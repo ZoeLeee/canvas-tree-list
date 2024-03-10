@@ -5,6 +5,9 @@
 	},
 	"linter": {
 		"enabled": true,
+		"ignore": [
+			"dist/*.js"
+		],
 		"rules": {
 			"recommended": true,
 			"style": {},
