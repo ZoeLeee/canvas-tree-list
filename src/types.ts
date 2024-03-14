@@ -1,6 +1,6 @@
 export type TreeItemOption = {
 	label: string;
-	id: string | number;
+	id: number;
 	data?: any;
 	expanded?: boolean;
 	selected?: boolean;

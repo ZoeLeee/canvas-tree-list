@@ -19,6 +19,7 @@ export const ROOT_ID = 0;
 export const UN_NAMED = "未命名";
 const SCROLL_BAR_NAME = "SCROLL_BAR";
 const ICON_DEFAULT_SIZE = 20
+const ROOT_NAME = "ITEM_ROOT"
 
 /**
  * 使用画布绘制列表
@@ -29,6 +30,7 @@ export class CanvasTree {
 	private scrollBar: Rect;
 	private totalHeight = 30;
 	private _renderIndex = 0;
+	private list: TreeItemOption[] = []
 	constructor(container: HTMLElement, private _data: TreeItemOption[] = []) {
 		this._stage = new Stage({
 			container: container as HTMLDivElement,
@@ -66,6 +68,8 @@ export class CanvasTree {
 
 		this.scrollBar = rect;
 
+		this._layer.add(this.scrollBar)
+
 		this.render();
 
 		this.register();
@@ -80,6 +84,7 @@ export class CanvasTree {
 		this._layer.destroyChildren()
 		this.totalHeight = 0
 		this._renderIndex = 0
+		this.list.length = 0
 		for (const element of this._data) {
 			this.renderNodeItem(element, 0);
 		}
@@ -88,6 +93,7 @@ export class CanvasTree {
 		this.drawScrollbar();
 	}
 	renderNodeItem(item: TreeItemOption, depth: number) {
+		this.list.push(item);
 		const x = depth * SPACING;
 		const y = this._renderIndex * itemHeight;
 
@@ -95,23 +101,43 @@ export class CanvasTree {
 			x, y
 		}
 
-		position.x += SPACING
-
 		const group = new Group({
 			x: 0,
 			y: position.y,
 			ORIGIN_DATA: item,
-			name: "ITEM_ROOT"
+			name: ROOT_NAME,
+			draggable: true,
+			renderIndex: this._renderIndex,
+			dragBoundFunc: (pos) => {
+				return {
+					x: 0,
+					y: clamp(pos.y, 0, this.Height - itemHeight),
+				};
+			}
 		});
+
+
+
 
 		const background = new Rect({
 			name: "Backgroud",
 			width: this.Width,
 			height: itemHeight,
+			fill: "#fff",
 			stroke: "black",
-			strokeWidth: 1,
+			strokeWidth: 0.1,
 		});
 		group.add(background);
+
+		const line = new Line({
+			points: [x + 2, 0, x + 2, 30],
+			stroke: "red",
+			strokeWidth: 1
+		});
+		group.add(line)
+
+
+		// position.x += SPACING
 
 		// render group arrow
 
@@ -220,12 +246,23 @@ export class CanvasTree {
 		// 拖拽行为
 		let line: Line | null;
 
+		let dragNode: Group
+
+		let targetIndex: number
+
 		this._stage.on("dragstart", (evt) => {
 			if (evt.target.name() === SCROLL_BAR_NAME) {
 				return;
 			}
 
-			if (evt.target instanceof Group) {
+			if (evt.target instanceof Group && evt.target.name() === ROOT_NAME) {
+				const cloneNode = evt.target.clone()
+				this._layer.add(cloneNode);
+				const index = evt.target.zIndex();
+				evt.target.opacity(0.3)
+				evt.target.moveToTop();
+				cloneNode.zIndex(index)
+				dragNode = evt.target
 			}
 		});
 
@@ -235,12 +272,41 @@ export class CanvasTree {
 				this.scrollY2StageY();
 				return;
 			}
+
+			const pt = this._stage.getPointerPosition()
+
+			if (pt) {
+				const index = this.getIndexByY(pt.y)
+				console.log('index: ', index);
+				targetIndex = index;
+				if (!line) {
+					line = new Line({
+						x: 0, y: itemHeight * index,
+						points: [
+							0, 0,
+							this.Width, 0
+						],
+						strokeWidth: 1,
+						stroke: "#0000ff"
+					})
+				} else {
+					line.y(itemHeight * index)
+				}
+
+
+				this._layer.add(line)
+
+				line.moveToTop()
+
+			}
+
 		});
 
 		this._stage.on("dragend", (evt) => {
 			if (!line) return;
 			if (evt.target instanceof Group) {
 				evt.target.destroy();
+				this.inserttarget(evt.target.getAttr("renderIndex"), targetIndex);
 			}
 			line.destroy();
 			line = null;
@@ -263,7 +329,7 @@ export class CanvasTree {
 			const right = "M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z"
 
 			const arrow = new Path({
-				data: item.expanded ? down : right,
+				data: (item.expanded ?? true) ? down : right,
 				x: position.x,
 				y: 2.5,
 				stroke: "#ccc",
@@ -274,25 +340,24 @@ export class CanvasTree {
 				name: "FOLDER_ICON",
 				hitStrokeWidth: 10
 			})
-			position.x += (SPACING * 2)
 
-			const foldIcon2 = new Path({
-				data: "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8z",
-				x: position.x,
-				y: 2.5,
-				stroke: "#ccc",
-				strokeWidth: 1,
-				width: ICON_DEFAULT_SIZE,
-				height: ICON_DEFAULT_SIZE,
-				fill: "#ffe3c7",
-				name: "FOLDER_ICON",
-				hitStrokeWidth: 10
-			})
-			// this._layer.add(foldIcon)
-			parent.add(foldIcon2)
+			// const foldIcon2 = new Path({
+			// 	data: "M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8z",
+			// 	x: position.x,
+			// 	y: 2.5,
+			// 	stroke: "#ccc",
+			// 	strokeWidth: 1,
+			// 	width: ICON_DEFAULT_SIZE,
+			// 	height: ICON_DEFAULT_SIZE,
+			// 	fill: "#ffe3c7",
+			// 	name: "FOLDER_ICON",
+			// 	hitStrokeWidth: 10
+			// })
+			// // this._layer.add(foldIcon)
+			// parent.add(foldIcon2)
 			parent.add(arrow)
 
-			position.x += (SPACING * 3)
+			position.x += ICON_DEFAULT_SIZE
 
 		} else {
 			const icon = new Rect({
@@ -307,7 +372,7 @@ export class CanvasTree {
 
 			parent.add(icon)
 
-			position.x += (SPACING * 3)
+			position.x += ICON_DEFAULT_SIZE
 
 		}
 	}
@@ -318,5 +383,64 @@ export class CanvasTree {
 		item.expanded = !item.expanded;
 		this.render()
 	}
+	private getIndexByY(y: number) {
+		const index = Math.floor((y - this._stage.y()) / itemHeight)
 
+		return index
+	}
+	private inserttarget(sourceIndex: number, targetIndex: number) {
+		console.log('targetIndex: ', targetIndex);
+		console.log('sourceIndex: ', sourceIndex);
+		const element = this.list[sourceIndex]
+		const targetelement = this.list[targetIndex]
+
+		this.removeById(element.id)
+
+		this.insertById(element, targetelement.id)
+
+		this.render()
+
+	}
+	private removeById(id: number, list = this._data) {
+		for (const item of list) {
+			if (item.id === id) {
+				const index = list.indexOf(item)
+				list.splice(index, 1)
+				return true
+			}
+
+			if (item.children?.length) {
+				const status = this.removeById(id, item.children)
+
+				if (status) {
+					return true
+				}
+			}
+
+		}
+		return false
+	}
+
+	private insertById(element: TreeItemOption, targetId: number, list = this._data) {
+		const index = list.findIndex(item => item.id === targetId)
+
+		if (index >= 0) {
+			list.splice(index, 0, element)
+			return true
+		}
+
+		for (const item of list) {
+			if (item.children?.length) {
+				{
+					const status = this.insertById(element, targetId, item.children)
+
+					if (status) {
+						return true
+					}
+				}
+			}
+
+		}
+		return false
+	}
 }
